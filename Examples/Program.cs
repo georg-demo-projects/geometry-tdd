@@ -9,83 +9,87 @@ namespace Examples
     {
         public static void Main(string[] args)
         {
-            Console.WriteLine("---------- DefaultFiguresExample ----------");
             DefaultFiguresExample();
-
-            Console.WriteLine("---------- ModifyStrategyExample ----------");
+            
             ModifyStrategyExample(); // add RightAngledTriangle area strategy
-
-            Console.WriteLine("---------- AddFigureExample ----------");
+            
             AddFigureExample(); // add Rectangle figure
-
-            Console.WriteLine("---------- NewVisitorExample ----------");
+            
             NewVisitorExample(); // print figure list visitor
 
-            Console.WriteLine("---------- AreasSum ----------");
             AreasSum(); // calculate areas sum of the printed figures
         }
 
         public static void DefaultFiguresExample()
         {
+            Console.WriteLine("\n* DefaultFiguresExample *\n");
+
             // Setup
-            var areaCalculator = new AreaFigureVisitor();
+            IFigureVisitor<double> areaCalculator = new AreaFigureVisitor();
+            double radius = 5;
+            double a = 13, b = 12, c = 5;
 
-            // Create figures
-            var circle = Circle.Create(5);
-            var triangle = Triangle.Create(13, 12, 5);
-
+            IFigure circle = Circle.Create(radius);
             double circleArea = areaCalculator.Visit(circle);
-            Console.WriteLine($"Circle: Radius={circle.Radius}");
-            Console.WriteLine($"Area={circleArea}");
-            Console.WriteLine();
-
+            
+            IFigure triangle = Triangle.Create(a, b, c);
             double triangleArea = areaCalculator.Visit(triangle);
-            Console.WriteLine($"Triangle: Sides={triangle.Side1}; {triangle.Side2}; {triangle.Side3}");
-            Console.WriteLine($"Area={triangleArea}");
-            Console.WriteLine();
+
+            Console.WriteLine($"Circle radius: {radius}; Area={circleArea}");
+            Console.WriteLine($"Triangle sides: {a}; {b}; {c}; Area={triangleArea}");
         }
 
         public static void ModifyStrategyExample()
         {
+            Console.WriteLine("\n* ModifyStrategyExample *\n");
+
             // Setup
-            var areaCalculator = new AreaFigureVisitor();
-            var defaultTriangleStrategy = new TriangleAreaStrategy();
+            IFigureVisitor<double> areaCalculator = new AreaFigureVisitor();
+            ITriangleStrategy<double> defaultTriangleStrategy = new TriangleAreaStrategy();
+            double a = 5, b = 4, c = 3;
+
+            IFigure triangle = Triangle.Create(a, b, c);
 
             // create extended triangle strategy
-            var extendedTriangleStrategy = new RightAngledTriangleAreaStrategy(defaultTriangleStrategy);
+            ITriangleStrategy<double> extendedTriangleStrategy = new RightAngledTriangleAreaStrategy(defaultTriangleStrategy);
 
             // replace existing triangle strategy
             areaCalculator.StrategyContainer.Register<ITriangleStrategy<double>>(extendedTriangleStrategy);
 
-            var rightAngled = Triangle.Create(5, 4, 3);
+            // calc area with extended triangle strategy
+            double triangleArea = areaCalculator.Visit(triangle);
 
-            Console.WriteLine($"Triangle: Sides = {rightAngled.Side1}; {rightAngled.Side2}; {rightAngled.Side3};");
-            Console.WriteLine($"Area={areaCalculator.Visit(rightAngled)}");
-            Console.WriteLine();
+            Console.WriteLine($"Triangle sides: {a}; {b}; {c}; Area={triangleArea}");
 
             // output:
-            // >    Triangle: Sides = 5; 4; 3;
             // >    --- Applied the strategy for a right-angled triangle ---
-            // >    6
+            // >    Triangle: Sides = 5; 4; 3; Area=6
         }
 
         public static void AddFigureExample()
         {
+            Console.WriteLine("\n* AddFigureExample *\n");
+
             // Setup
-            var areaCalculator = new AreaFigureVisitor();
-            var rect = new Rectangle(5, 10);
+            IFigureVisitor<double> areaCalculator = new AreaFigureVisitor();
+            double h = 5, w = 10;
+
+            IFigure rect = new Rectangle(h, w);
 
             // add rectangle strategy
             areaCalculator.StrategyContainer.Register<IRectangleStrategy<double>>(new RectangleAreaStrategy());
 
-            Console.WriteLine($"Rectangle: H/W = {rect.Hight}; {rect.Width};");
-            Console.WriteLine($"Area={areaCalculator.Visit(rect)}");
-            Console.WriteLine();
+            // calc area
+            double rectArea = areaCalculator.Visit(rect);
+
+            Console.WriteLine($"Rectangle: H/W: {h}; {w}; Area={rectArea}");
         }
 
         public static void NewVisitorExample()
         {
-            var figurePrinter = new PrintVisitor();
+            Console.WriteLine("\n* NewVisitorExample *\n");
+
+            IFigureVisitor<string> figurePrinter = new PrintVisitor();
 
             foreach (IFigure f in GetFigures())
             {
@@ -96,7 +100,9 @@ namespace Examples
 
         public static void AreasSum()
         {
-            var areaCalculator = new AreaFigureVisitor();
+            Console.WriteLine("\n* AreasSum *\n");
+
+            IFigureVisitor<double> areaCalculator = new AreaFigureVisitor();
             areaCalculator.StrategyContainer.Register<IRectangleStrategy<double>>(new RectangleAreaStrategy());
 
             double totalArea = GetFigures().Sum(f => areaCalculator.Visit(f));
